@@ -11,7 +11,7 @@
 
 ## Sensor/Actuator Driver API Overview
 
-The driver API currently consists of the following types/functions/etc. with the following members/arguments:
+The driver API currently consists of the following types/functions/etc. with the following signatures:
 
 - `struct ADCSensorTypeDef`: Base type for every ADC-dependent sensor. Should be instantiated once for each unique sensor.
   - `const uint8_t adc_index`: Corresponding ADC input index. (*mapping defined in the [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) software*)
