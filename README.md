@@ -1,6 +1,6 @@
 # nucleo-engine-controller
 
-(Eventually) source code for the Nucleo STM32F303RE-based rocket engine controller designed by the UCSB RPL. Written in C the [STM32Cube](https://www.st.com/content/st_com/en/stm32cube-ecosystem.html) HAL and built/flashed in the [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html).
+(Eventually) source code for the Nucleo STM32F303RE-based rocket engine controller designed by the UCSB RPL. Written in C using the [STM32Cube](https://www.st.com/content/st_com/en/stm32cube-ecosystem.html) HAL and built/flashed in the [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html).
 
 ## Directory Structure
 
