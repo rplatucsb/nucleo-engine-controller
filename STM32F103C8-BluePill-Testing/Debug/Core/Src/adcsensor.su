@@ -1,0 +1,3 @@
+adcsensor.c:9:6:ADCSensor_Trigger_Read	8	static
+adcsensor.c:14:10:ADCSensor_Read_Counts	16	static
+adcsensor.c:23:6:HAL_ADC_ConvCpltCallback	24	static

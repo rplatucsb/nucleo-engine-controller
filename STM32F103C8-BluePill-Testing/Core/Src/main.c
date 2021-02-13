@@ -24,25 +24,13 @@
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
 #include <string.h>
+#include "adcsensor.h"
+#include "actuator.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-// Structure to define an ADC-dependent sensor.
-typedef struct {
-    const uint8_t adc_index; // Defined by the ADC input index in STM32CubeMX.
-    const ADC_HandleTypeDef* adc;
-	const float counts_per_volt; // TODO: Should this be a smaller type?
-	volatile uint8_t value_ready_for_read; // 1=ready, 0=incomplete
-} ADCSensorTypeDef;
 
-// Structure to define a simple two-state actuator.
-typedef struct {
-	const GPIO_TypeDef* port;
-	const uint16_t pin_num; // Sized to match with HAL GPIO type definitions.
-	const uint8_t normally_open; // 1=normally-open, 0=normally-closed
-	uint8_t current_state; // 1=open, 0=closed
-} ActuatorTypeDef;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -55,25 +43,17 @@ typedef struct {
 #define BLINKS_PER_INTERVAL 2
 #define BLINK_PERIOD 500
 #define BLINK_INTERVAL 1000
-#define ADC1_VAL_SIZE 10
-#define ADC_SENSORS_SIZE 1 // TODO: Change later once proper sensor requirements are in place.
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
-CAN_HandleTypeDef hcan;
-
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-// Flag communicating when there is a new value to read from the adc1_val buffer.
-//volatile uint8_t adc1_value_ready = 0;
-// DMA buffer containing the output of adc1.
-volatile uint16_t adc1_val[ADC1_VAL_SIZE];
 // Simple loop counter for the UART communication demo.
 int count = 0;
 // String buffer for the UART communication demo.
@@ -96,55 +76,12 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-//	if(hadc->Instance == hadc1.Instance)
-//		adc1_value_ready = 1;
-
-	// For each defined sensor, check to see if it uses the same ADC which
-	// triggered the callback. If so, update its struct with the new information.
-	for(int i = 0; i < ADC_SENSORS_SIZE; i++) {
-		if(adc_sensors[i]->adc->Instance == hadc->Instance) {
-			adc_sensors[i]->value_ready_for_read = 1;
-			// TODO: Implement call to control loop indicating new sensor information is available.
-		}
-	}
-}
-
-void ADCSensor_Trigger_Read() {
-	// TODO: Add more ADC triggers when more ADCs are implemented.
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_val, ADC1_VAL_SIZE);
-}
-
-uint32_t ADCSensor_Read_Counts(ADCSensorTypeDef* adc_sensor) {
-	// TODO: Should there be a way to return an error code if there isn't a new value ready?
-
-	// Reset ready flag for next read operation.
-	adc_sensor->value_ready_for_read = 0;
-	// Return the correct value from the ADC buffer.
-	return adc1_val[adc_sensor->adc_index];
-}
-
-void Actuator_Open(ActuatorTypeDef* actuator) {
-	// If the actuator is normally open, write logic low. Else write logic high.
-	HAL_GPIO_WritePin(actuator->port,
-					  actuator->pin_num,
-					  actuator->normally_open == 1 ? GPIO_PIN_RESET : GPIO_PIN_SET);
-}
-
-void Actuator_Close(ActuatorTypeDef* actuator) {
-	// If the actuator is normally open, write logic high. Else write logic low.
-	HAL_GPIO_WritePin(actuator->port,
-					  actuator->pin_num,
-					  actuator->normally_open == 1 ? GPIO_PIN_SET : GPIO_PIN_RESET);
-}
-
 void CAN_Send(uint8_t* msg, uint8_t length) {
 
 }
@@ -188,24 +125,18 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
-  MX_CAN_Init();
   /* USER CODE BEGIN 2 */
-//  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_val, ADC_SIZE);
   ADCSensor_Trigger_Read();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-//	if(adc1_value_ready) {
 	if(pot.value_ready_for_read) {
-//	  	float voltage = (float)adc1_val[0]*(3.3/0xFFF);
 		float voltage = ADCSensor_Read_Counts(&pot)/pot.counts_per_volt;
 
 		sprintf(msg, "Hello World! %d ADC: %d.%d\r\n", count, (int)voltage, (int)(voltage * 100) % 100);
 		ADCSensor_Trigger_Read();
-//		adc1_value_ready = 0;
-//		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_val, ADC_SIZE);
 	} else {
 		sprintf(msg, "Hello World! %d\r\n", count);
 	}
@@ -328,43 +259,6 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
-
-}
-
-/**
-  * @brief CAN Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_CAN_Init(void)
-{
-
-  /* USER CODE BEGIN CAN_Init 0 */
-
-  /* USER CODE END CAN_Init 0 */
-
-  /* USER CODE BEGIN CAN_Init 1 */
-
-  /* USER CODE END CAN_Init 1 */
-  hcan.Instance = CAN1;
-  hcan.Init.Prescaler = 16;
-  hcan.Init.Mode = CAN_MODE_NORMAL;
-  hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan.Init.TimeSeg2 = CAN_BS2_1TQ;
-  hcan.Init.TimeTriggeredMode = DISABLE;
-  hcan.Init.AutoBusOff = DISABLE;
-  hcan.Init.AutoWakeUp = DISABLE;
-  hcan.Init.AutoRetransmission = DISABLE;
-  hcan.Init.ReceiveFifoLocked = DISABLE;
-  hcan.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN CAN_Init 2 */
-
-  /* USER CODE END CAN_Init 2 */
 
 }
 
