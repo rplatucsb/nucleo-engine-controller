@@ -63,6 +63,8 @@ typedef struct {
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+CAN_HandleTypeDef hcan;
+
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
@@ -76,6 +78,10 @@ volatile uint16_t adc1_val[ADC1_VAL_SIZE];
 int count = 0;
 // String buffer for the UART communication demo.
 char msg[50];
+// Flag communicating when there is a new CAN message to read from the can_val buffer.
+volatile uint8_t can_val_ready = 0;
+// Buffer containing the last-received CAN message.
+volatile uint8_t can_val[8];
 
 // Defines the potentiometer ADC sensor used for HAL API testing.
 ADCSensorTypeDef pot = {0, &hadc1, 0xFFF/3.3, 0};
@@ -90,6 +96,7 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_CAN_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -137,6 +144,14 @@ void Actuator_Close(ActuatorTypeDef* actuator) {
 					  actuator->pin_num,
 					  actuator->normally_open == 1 ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
+
+void CAN_Send(uint8_t* msg, uint8_t length) {
+
+}
+
+void CAN_Receive() {
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -173,6 +188,7 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
+  MX_CAN_Init();
   /* USER CODE BEGIN 2 */
 //  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_val, ADC_SIZE);
   ADCSensor_Trigger_Read();
@@ -312,6 +328,43 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief CAN Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN_Init(void)
+{
+
+  /* USER CODE BEGIN CAN_Init 0 */
+
+  /* USER CODE END CAN_Init 0 */
+
+  /* USER CODE BEGIN CAN_Init 1 */
+
+  /* USER CODE END CAN_Init 1 */
+  hcan.Instance = CAN1;
+  hcan.Init.Prescaler = 16;
+  hcan.Init.Mode = CAN_MODE_NORMAL;
+  hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan.Init.TimeSeg1 = CAN_BS1_1TQ;
+  hcan.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan.Init.TimeTriggeredMode = DISABLE;
+  hcan.Init.AutoBusOff = DISABLE;
+  hcan.Init.AutoWakeUp = DISABLE;
+  hcan.Init.AutoRetransmission = DISABLE;
+  hcan.Init.ReceiveFifoLocked = DISABLE;
+  hcan.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN_Init 2 */
+
+  /* USER CODE END CAN_Init 2 */
 
 }
 
