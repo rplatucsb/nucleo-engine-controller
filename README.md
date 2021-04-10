@@ -6,7 +6,9 @@
 
 - `.vscode/*`: VS Code workspace configuration files
 - `Adarsh_old/*`: Old Nucleo STM32F303RE test project made by Adarsh
+- `STM32F103-MCP2551-Test/*`: PlstformIO/Arduino CAN test program for the STM32F103C8 Blue Pill board for use as a "Black Box" and theoretically known-good CAN implementation with the MCP2551 CAN IC. Planned for use for testing the WIP STM32Cube HAL CAN driver.
 - `STM32F103C8-BluePill-Testing/*`: STM32F103C8 project testing the use of STM32Cube HAL GPIO, ADC read, and serial UART communication. Also prototypes the sensor/actuator control driver API sitting between the [QM](www.state-machine.com) control loop and STM32Cube HAL layers.
+- `bsp.c`: STM32Cube HAL reference for CAN implementation (*From Varun*)
 - `README.md`: This file. :)
 
 ## Sensor/Actuator Driver API Overview

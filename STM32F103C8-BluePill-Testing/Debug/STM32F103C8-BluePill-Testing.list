@@ -668,21 +668,19 @@ int main(void)
   MX_ADC1_Init();
  8000712:	f000 f8e1 	bl	80008d8 <MX_ADC1_Init>
   /* USER CODE BEGIN 2 */
-//  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_val, ADC_SIZE);
   ADCSensor_Trigger_Read();
  8000716:	f7ff ffa5 	bl	8000664 <ADCSensor_Trigger_Read>
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-//	if(adc1_value_ready) {
 	if(pot.value_ready_for_read) {
  800071a:	4b38      	ldr	r3, [pc, #224]	; (80007fc <main+0x108>)
  800071c:	7b1b      	ldrb	r3, [r3, #12]
  800071e:	b2db      	uxtb	r3, r3
  8000720:	2b00      	cmp	r3, #0
  8000722:	d032      	beq.n	800078a <main+0x96>
-//	  	float voltage = (float)adc1_val[0]*(3.3/0xFFF);
 		float voltage = ADCSensor_Read_Counts(&pot)/pot.counts_per_volt;
  8000724:	4835      	ldr	r0, [pc, #212]	; (80007fc <main+0x108>)
  8000726:	f7ff ffab 	bl	8000680 <ADCSensor_Read_Counts>
@@ -728,8 +726,6 @@ int main(void)
 		ADCSensor_Trigger_Read();
  8000784:	f7ff ff6e 	bl	8000664 <ADCSensor_Trigger_Read>
  8000788:	e006      	b.n	8000798 <main+0xa4>
-//		adc1_value_ready = 0;
-//		HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc1_val, ADC_SIZE);
 	} else {
 		sprintf(msg, "Hello World! %d\r\n", count);
  800078a:	4b1d      	ldr	r3, [pc, #116]	; (8000800 <main+0x10c>)
